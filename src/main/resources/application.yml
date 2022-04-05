@@ -1,0 +1,63 @@
+server:
+  port: 8999
+  error:
+    include-message: always
+
+spring:
+  application:
+    name: fileservice
+  datasource:
+    url: jdbc:h2:mem:drdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password: 
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 100MB
+  
+  profiles:
+    active: dev
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8181/auth/realms/zurich
+          jwk-set-uri: http://localhost:8181/auth/realms/zurich/protocol/openid-connect/certs
+
+keycloak:
+  auth-server-url: http://localhost:8181/auth
+  realm: zurich
+  ssl-required: none
+  resource: demo-fileservice
+  credentials:
+    secret: dc1eaead-214d-47fc-a30c-6f85f44b23ef
+  bearer-only: true
+  use-resource-role-mappings: true
+  
+jwkSetUri: http://localhost:8181/auth/realms/zurich/protocol/openid-connect/certs  
+
+springdoc:
+  swagger-ui.operationsSorter: method
+
+---
+  
+spring:
+  profiles: dev
+ 
+target:
+  dir: /Users/dragisa/git/testgenerator/
+  file: example.pdf
+
+---
+
+spring:
+  profiles: test
+
+oas:
+  dir: /opt/api/filestorage/
+  file: customer.yaml
