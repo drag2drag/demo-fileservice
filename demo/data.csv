@@ -1,0 +1,5 @@
+program;java;price.ear;;
+program;java;currancy.jar;;
+program;script;start-price.sh;;
+program;phyton;price.py;;
+configuration;price-service;price_configuration.json;;

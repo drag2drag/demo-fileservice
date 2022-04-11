@@ -67,6 +67,7 @@ public class DataRecordController {
 	})
 	public DataRecord addDataRecord(@RequestBody DataRecord datarecord) {
 		dataRecordService.addDataRecord(datarecord);
+		logger.info("Added data record: " + datarecord.toString());
 		return datarecord;
 	}
 

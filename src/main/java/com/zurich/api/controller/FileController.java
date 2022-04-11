@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -45,7 +47,7 @@ public class FileController {
 
 	Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	public File uploadFile(MultipartFile file) {
+	public File uploadFile(MultipartFile file, String callbackUrl) {
 
 		String fileName = fileStorageService.storeFile(file);
 
@@ -53,10 +55,25 @@ public class FileController {
 				.path("/files/download/")
 				.path(fileName)
 				.toUriString();
+		
+        File file_obj = new File(fileName, fileDownloadUri, file.getContentType(), file.getSize(), callbackUrl);
+        
+        fileStorageService.addFileRecord(file_obj);
+		return file_obj;
 
-		return new File(fileName, fileDownloadUri,
-				file.getContentType(), file.getSize());
+	}
 
+	@Operation(summary = "Upload file and confirmation (lazy processing)")
+	@PostMapping("/files")
+	@ResponseStatus(HttpStatus.CREATED)
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "201", description = "Uploaded"),
+			@ApiResponse(responseCode = "401", description = "Unauthorized"),
+			@ApiResponse(responseCode = "403", description = "Forbidden"),
+			@ApiResponse(responseCode = "404", description = "Not found")
+	})
+	public String processFile(@Parameter(description = "File to upload") @RequestParam("file") MultipartFile file) {
+		return fileStorageService.processFile(file);
 	}
 
 	@Operation(summary = "Upload file and processing")
@@ -67,20 +84,8 @@ public class FileController {
 			@ApiResponse(responseCode = "403", description = "Forbidden"),
 			@ApiResponse(responseCode = "404", description = "Not found")
 	})
-	public String processFile(@Parameter(description = "File to upload") @RequestParam("file") MultipartFile file) {
-		return fileStorageService.processFile(file);
-	}
-
-	@Operation(summary = "Upload file and lazy processing")
-	@PostMapping("/files")
-	@ApiResponses(value = {
-			@ApiResponse(responseCode = "201", description = "Uploaded & processed"),
-			@ApiResponse(responseCode = "401", description = "Unauthorized"),
-			@ApiResponse(responseCode = "403", description = "Forbidden"),
-			@ApiResponse(responseCode = "404", description = "Not found")
-	})
-	public String processAndStoreFile(@Parameter(description = "File to upload") @RequestParam("file") MultipartFile file) {
-		return fileStorageService.storeAndProcessFile(file);
+	public File processAndStoreFile(@Parameter(description = "Callback URL") @RequestParam(required = false, name = "callbackUrl") String callbackUrl, @Parameter(description = "File to upload") @RequestParam("file") MultipartFile file) {
+		return uploadFile(file, callbackUrl);
 	}
 
 	@Operation(summary = "Upload and store files (bulk)")
@@ -91,10 +96,10 @@ public class FileController {
 			@ApiResponse(responseCode = "403", description = "Forbidden"),
 			@ApiResponse(responseCode = "404", description = "Not found")
 	})
-	public List<File> uploadMultipleFiles(@Parameter( description = "Files") @RequestParam("file") MultipartFile[] files) {
+	public List<File> uploadMultipleFiles(@Parameter(description = "Callback URL") @RequestParam(required = false, name = "callbackUrl") String callbackUrl, @Parameter( description = "Files") @RequestParam("file") MultipartFile[] files) {
 		return Arrays.asList(files)
 				.stream()
-				.map(file -> uploadFile(file))
+				.map(file -> uploadFile(file, callbackUrl))
 				.collect(Collectors.toList());
 	}
 
@@ -128,6 +133,20 @@ public class FileController {
 				.body(resource);
 	}
 
+	@Operation(summary = "Get files from DB")
+	@GetMapping("/files")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "OK"),
+			@ApiResponse(responseCode = "401", description = "Unauthorized"),
+			@ApiResponse(responseCode = "403", description = "Forbidden"),
+			@ApiResponse(responseCode = "404", description = "Not found")
+	})
+	public List<File> getFiles() {
+
+		return fileStorageService.getFiles();
+	}
+
+	
 	@Operation(summary = "Show file-storage")
 	@GetMapping(value = "/files/storage", produces = {"plain/text"})
 	@ApiResponses(value = {

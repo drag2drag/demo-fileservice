@@ -8,9 +8,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -18,7 +20,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.zurich.api.dao.FileRepo;
 import com.zurich.api.exception.FileStorageException;
+import com.zurich.api.model.DataRecord;
+import com.zurich.api.model.File;
 
 /**
  * @author Dragisa Dragisic, 2022
@@ -31,6 +36,9 @@ public class FileStorageService {
 	String targetDir;
 
 	Logger logger = LoggerFactory.getLogger(this.getClass());
+	
+	@Autowired
+	FileRepo fileRepo;
 
 	public String storeFile(MultipartFile file) {
 
@@ -50,7 +58,7 @@ public class FileStorageService {
 			Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
 			logger.info("Success storing " + fileName);
-
+			
 			return fileName;
 
 		} catch (IOException ex) {
@@ -80,7 +88,7 @@ public class FileStorageService {
 			logger.info("Success storing " + fileName);
 			logger.info("Processing file " + fileName + " ...");
 			try {
-				Thread.sleep(30000);
+				Thread.sleep(3000);
 			}
 			catch(InterruptedException ex) {
 				Thread.currentThread().interrupt();
@@ -109,7 +117,7 @@ public class FileStorageService {
 
 		logger.info("Processing file " + fileName + " ...");
 		try {
-			Thread.sleep(30000);
+			Thread.sleep(3000);
 		}
 		catch(InterruptedException ex) {
 			Thread.currentThread().interrupt();
@@ -177,4 +185,23 @@ public class FileStorageService {
 		return output.toString();
 
 	}
+	
+	public List<File> getFiles() {
+		
+		return fileRepo.findAll();
+		
+	}
+	
+	public File addFileRecord(File filerecord) {
+		fileRepo.save(filerecord);
+	    logger.info("Added file record:   " + filerecord.toString());
+		return filerecord;
+	}
+
+	public File updateFileRecord(File filerecord) {
+		fileRepo.save(filerecord);
+	    logger.info("Updated file record:   " + filerecord.toString());
+		return filerecord;
+	}
+
 }

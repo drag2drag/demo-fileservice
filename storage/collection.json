@@ -1,0 +1,151 @@
+{
+	"info": {
+		"_postman_id": "2fadc208-8fb5-4655-a85a-fe76b27ff32b",
+		"name": "SMAGridControl_v1_Get_schedule",
+		"description": "SMA grid control API version 1\n\n",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "/v1/plants/{plantId}/schedules/{scheduleId}",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "7e17b58f-738a-4502-8fe9-f31d33041a22",
+						"exec": [
+							"pm.test(\"status test 200\", ",
+							"    function() {",
+							"        pm.response.to.have.status(200);",
+							"        console.log(\"Read ScheduleId=\" + pm.environment.get(\"scheduleId\") + \" for PlantId=\" + pm.environment.get(\"plantId\"));",
+							"        // console.log(pm.response.json());",
+							"    }",
+							");"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "f0afdab5-59b2-48e4-afd4-09a21a63970e",
+						"exec": [
+							"// set plant id",
+							"if (pm.iterationData.get(\"plantId\") != null) {",
+							"    pm.environment.set(\"plantId\", pm.iterationData.get(\"plantId\"));",
+							"} else {",
+							"    pm.environment.set(\"plantId\", 'undef')",
+							"}",
+							"",
+							"// retrieve schedule id",
+							"if (pm.environment.get(\"plantId\") != 'undef') {",
+							"    if (pm.environment.get(pm.environment.get(\"plantId\")) != null) {",
+							"        var scheduleId = pm.environment.get(pm.environment.get(\"plantId\"));",
+							"        pm.environment.set(\"scheduleId\", scheduleId);",
+							"        console.log(\"PlantId=\" + pm.environment.get(\"plantId\") + \"; ScheduleId=\" + pm.environment.get(\"scheduleId\"));",
+							"    } else {",
+							"        pm.environment.set(\"scheduleId\", 'undef');",
+							"    }",
+							"} else {",
+							"    pm.environment.set(\"scheduleId\", 'undef');",
+							"}",
+							"",
+							"const tokenRequest = {",
+							"    url: pm.environment.get(\"token_url\"),",
+							"    method: 'POST',",
+							"    header: ",
+							"        {",
+							"            'Accept': 'application/json',",
+							"            'Content-Type': 'application/x-www-form-urlencoded'",
+							"        },",
+							"    body: ",
+							"        {",
+							"            mode: 'urlencoded',",
+							"            urlencoded: ",
+							"                [",
+							"                    {key: \"grant_type\", value: \"client_credentials\", disabled: false},",
+							"                    {key: \"client_id\", value: pm.environment.get(\"client_id\"), disabled: false},",
+							"                    {key: \"client_secret\", value: pm.environment.get(\"client_secret\"), disabled: false}",
+							"                ]    ",
+							"        }",
+							"};",
+							"    ",
+							"pm.sendRequest(tokenRequest, function (err, res) {",
+							"    if (err) {",
+							"        console.log(err);",
+							"    } else {",
+							"        pm.globals.set(\"token\", res.json().access_token);",
+							"        console.log(res.json().access_token);",
+							"    }",
+							"",
+							"});",
+							"",
+							"",
+							"    "
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/{{gridcontrol_url}}/plants/{{plantId}}/schedules/{{scheduleId}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"{{gridcontrol_url}}",
+						"plants",
+						"{{plantId}}",
+						"schedules",
+						"{{scheduleId}}"
+					]
+				},
+				"description": "get schedule with scheduleId\n"
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "63cbdb28-e983-4c72-8bd7-2102f6a6ec5d",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "d8ab8cc3-5d5f-445e-8b5c-c83fef714d8f",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"protocolProfileBehavior": {}
+}
