@@ -37,9 +37,9 @@ public class KeycloakSecurityConfig extends KeycloakWebSecurityConfigurerAdapter
         		.antMatchers(HttpMethod.GET, "/swagger-ui/**").permitAll()
         		.antMatchers(HttpMethod.GET, "/v3/api-docs").permitAll()
         		.antMatchers(HttpMethod.GET, "/v3/api-docs/**").permitAll()
-                .antMatchers(HttpMethod.GET, "/files/**").permitAll()
-                .antMatchers(HttpMethod.POST, "/files/**").hasRole("fileservice-admin")
-                .antMatchers(HttpMethod.PUT, "/files/**").hasRole("fileservice-admin")
+                .antMatchers(HttpMethod.GET, "/scenario-3/files/**").permitAll()
+                .antMatchers(HttpMethod.POST, "/**/files/**").hasRole("fileservice-admin")
+                .antMatchers(HttpMethod.PUT, "/**/files/**").hasRole("fileservice-admin")
                 .anyRequest().authenticated()).oauth2ResourceServer(
                 oauth2ResourceServer -> oauth2ResourceServer.jwt(
                         jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())

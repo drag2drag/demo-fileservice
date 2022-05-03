@@ -11,5 +11,6 @@ import com.zurich.api.model.File;
 public interface FileRepo extends JpaRepository<File, Integer> {
 	
 	List<File> findAll();
+	File findByFileName(String fileName);
 
 }

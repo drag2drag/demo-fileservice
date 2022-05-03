@@ -19,10 +19,11 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.zurich.api.dao.FileRepo;
+import com.zurich.api.exception.FileMovedException;
 import com.zurich.api.exception.FileStorageException;
-import com.zurich.api.model.DataRecord;
 import com.zurich.api.model.File;
 
 /**
@@ -39,6 +40,27 @@ public class FileStorageService {
 	
 	@Autowired
 	FileRepo fileRepo;
+	
+	public File uploadFile(MultipartFile file, String callbackUrl) {
+
+		String fileName = storeFile(file);
+
+		String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
+				.path("/scenario-3/files/")
+				.path(fileName)
+				.toUriString();
+		
+        File file_obj = new File(fileName, fileDownloadUri, file.getContentType(), file.getSize(), callbackUrl);
+        
+        if (fileRepo.findByFileName(fileName).getFileName().contains(fileName)) {
+        	updateFileRecord(file_obj, fileName);
+        } else {
+            addFileRecord(file_obj);
+        }
+		return file_obj;
+
+	}
+
 
 	public String storeFile(MultipartFile file) {
 
@@ -137,8 +159,8 @@ public class FileStorageService {
 				logger.info("Success retrieving " + fileName);
 				return resource;
 			} else {
-				logger.error("Error retrieving " + fileName + ". File not found.");
-				throw new FileStorageException("File not found " + fileName);
+				logger.error("Error retrieving " + fileName + ". File removed.");
+				throw new FileMovedException("File " + fileName + " moved to S3-Bucket.");
 			}
 		} catch (MalformedURLException ex) {
 			logger.error("Error retrieving " + fileName + ". File not found.");
@@ -198,10 +220,19 @@ public class FileStorageService {
 		return filerecord;
 	}
 
-	public File updateFileRecord(File filerecord) {
-		fileRepo.save(filerecord);
-	    logger.info("Updated file record:   " + filerecord.toString());
-		return filerecord;
+	public File updateFileRecord(File filerecord, String fileName) {
+		File updatedFile = fileRepo.findByFileName(fileName);
+		// partial update
+		if (filerecord.getSize() > 0)
+			updatedFile.setSize(filerecord.getSize());
+		if (filerecord.getFileCallbackUrl() != null && filerecord.getFileCallbackUrl().contains("http://"))
+			updatedFile.setFileCallbackUrl(filerecord.getFileCallbackUrl());
+		if (filerecord.getFileType() != null)
+			updatedFile.setFileType(filerecord.getFileType());
+		updatedFile.setFileDownloadUri(filerecord.getFileDownloadUri());
+		fileRepo.save(updatedFile);
+	    logger.info("Updated file record:   " + updatedFile.toString());
+		return updatedFile;
 	}
 
 }
