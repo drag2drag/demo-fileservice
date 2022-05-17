@@ -123,6 +123,7 @@ public class FileConsumerController {
 		requestedFiles.forEach((requestedFile) -> {
 			if (requestedFile.getSize() > 0 && requestedFile.getFileType() != null && requestedFile.getFileCallbackUrl() != null && requestedFile.getFileCallbackUrl().startsWith("http://")) {
 				try {
+					logger.info("Requested file found " + requestedFile.getFileName());
 					FileInputStream input = new FileInputStream(requestedFile.getFileName());
 					MultipartFile multipartFile = new MockMultipartFile("file", requestedFile.getFileName(), requestedFile.getFileType(), IOUtils.toByteArray(input));
 					fileStorageService.uploadFile(multipartFile, requestedFile.getFileCallbackUrl());

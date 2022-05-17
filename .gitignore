@@ -2,6 +2,7 @@ HELP.md
 target/
 demo/
 storage/
+karate/target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/

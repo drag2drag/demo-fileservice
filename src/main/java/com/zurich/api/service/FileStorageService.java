@@ -51,8 +51,10 @@ public class FileStorageService {
 				.toUriString();
 		
         File file_obj = new File(fileName, fileDownloadUri, file.getContentType(), file.getSize(), callbackUrl);
-        
-        if (fileRepo.findByFileName(fileName).getFileName().contains(fileName)) {
+
+//        addFileRecord(file_obj);
+
+        if (fileRepo.findByFileName(fileName) != null && fileRepo.findByFileName(fileName).getFileName().contains(fileName)) {
         	updateFileRecord(file_obj, fileName);
         } else {
             addFileRecord(file_obj);
